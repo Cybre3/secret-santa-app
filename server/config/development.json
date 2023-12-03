@@ -1,0 +1,6 @@
+{
+    "name": "Secret Santa App - Development",
+    "db": "mongodb://localhost/secret-santa",
+    "jwtPrivateKey": "privateKey",
+    "env": "development"
+  }

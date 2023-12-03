@@ -1,0 +1,10 @@
+{
+    "name": "Secret Santa App - Production",
+    "db": {
+        "dbName": "portfolio",
+        "host": "mongodb+srv",
+        "pass": "DB_PASS",
+        "user": "DB_USER"
+    },
+    "env": "production"
+}
