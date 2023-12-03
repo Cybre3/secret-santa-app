@@ -6,6 +6,7 @@ import Form from './common/form/Form';
 import { registerUser } from '../store/users';
 import { addUserToGroup } from '../store/groups';
 import { connect } from 'react-redux';
+import { NavLink } from 'react-router-dom';
 
 class Register extends Form {
     state = {
@@ -71,6 +72,12 @@ class Register extends Form {
 
                     {this.renderButton('Continue', '', '', this.btnClass)}
 
+                    <p>Already a registered Secret Santa? Login
+                        <NavLink to='/login' className='text-blue-700 ml-1'>
+                            Here
+                        </NavLink>
+                        !
+                    </p>
                 </form>
 
             </div >

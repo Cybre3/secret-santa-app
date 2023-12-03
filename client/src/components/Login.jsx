@@ -59,7 +59,12 @@ class Login extends Form {
 
                     {this.renderButton('Continue', '', '', this.btnClass)}
 
-                    <p>Not a memeber? Register <NavLink to='/register' className='text-blue-700'>Here</NavLink></p>
+                    <p>Not a registered Secret Santa? Register
+                        <NavLink to='/register' className='text-blue-700 ml-1'>
+                            Here
+                        </NavLink>
+                        !
+                    </p>
 
                 </form>
 
