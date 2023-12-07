@@ -1,20 +1,20 @@
 import React from 'react';
 import Joi from 'joi-browser';
+import { NavLink } from 'react-router-dom';
+import { connect } from 'react-redux';
 
 import Form from './common/form/Form';
 
-import { registerUser } from '../store/users';
-import { addUserToGroup } from '../store/groups';
-import { connect } from 'react-redux';
-import { NavLink } from 'react-router-dom';
+import { getCurrentUserByEmail, loadUsers, registerUser } from '../store/users';
+import { addUserToGroup, loadGroups } from '../store/groups';
 
 class Register extends Form {
     state = {
         data: {
-            firstname: '',
-            email: '',
-            password: '',
-            repassword: '',
+            firstname: 'Starrika',
+            email: 'cybre3@gmail.com',
+            password: '123456',
+            repassword: '123456',
             role: '',
             group: ''
         },
@@ -22,6 +22,8 @@ class Register extends Form {
     }
 
     schema = {
+        _id: Joi.string(),
+        firstname: Joi.string().required().label('First Name'),
         email: Joi.string().email().required().label('Email'),
         password: Joi.string().required().label('Passowrd'),
         repassword: Joi.string().required().label('Re-Passowrd'),
@@ -45,11 +47,16 @@ class Register extends Form {
 
     btnClass = 'cursor-pointer rounded border border-black my-4 mt-8  px-4 py-1 hover:bg-green-700 hover:text-white';
 
-    doSubmit = () => {
-        const user = this.state.data;
+    doSubmit = async () => {
+        const userEntry = this.state.data;
         try {
-            this.props.registerUser(user);
-            this.props.addUserToGroup(user);
+            await this.props.registerUser(userEntry);
+            this.props.loadUsers();
+            this.props.loadGroups();
+            const [currentUser] = this.props.getCurrentUserByEmail(userEntry.email)
+            await this.props.addUserToGroup(currentUser);
+
+            window.location = `/login`;
         } catch (error) {
             console.log(error.message)
         }
@@ -86,10 +93,14 @@ class Register extends Form {
 }
 
 const mapStateToProps = state => ({
-    groups: state.entities.groups
+    groups: state.entities.groups,
+    users: state.entities.users,
+    getCurrentUserByEmail: email => getCurrentUserByEmail(email)(state)
 });
 
 const mapDispatchToProps = dispatch => ({
+    loadUsers: () => dispatch(loadUsers()),
+    loadGroups: () => dispatch(loadGroups()),
     registerUser: user => dispatch(registerUser(user)),
     addUserToGroup: user => dispatch(addUserToGroup(user))
 })

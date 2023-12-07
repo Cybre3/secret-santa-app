@@ -32,21 +32,30 @@ const slice = createSlice({
             const groupIndex = groups.list.findIndex(group => group.name === user.group);
             const group = groups.list[groupIndex];
 
-            group.push(user);
+            group.users.push(user);
         },
 
-        personFromPickPoolRemoved: (groups, action) => {
-            const { personToGift } = action.payload;
-            const groupIndex = groups.list.findIndex(group => group.name === personToGift.group);
+        personRemovedFromPickPool: (groups, action) => {
+            const { group: groupname, _id } = action.payload;
+            const groupIndex = groups.list.findIndex(group => group.name === groupname);
             const group = groups.list[groupIndex];
 
-            group.pickPool.filter(person => person._id !== personToGift._id)
+            group.pickPool.filter(person => person._id !== _id)
+        },
+
+        personAssignedToUser: (groups, action) => {
+            const { personToGift, user } = action.payload;
+            const groupIndex = groups.list.findIndex(group => group.name === personToGift.group);
+            const group = groups.list[groupIndex];
+            const santaIndex = group.secretSantas.findIndex(santa => santa._id === user._id);
+
+            group.secretSantas[santaIndex].personToGift = personToGift;
         }
     }
 });
 
 // Action Creators
-const { groupsRequested, groupsRequestFailed, groupsReceived, groupAdded, userAddedToGroup, personFromPickPoolRemoved } = slice.actions;
+const { groupsRequested, groupsRequestFailed, groupsReceived, groupAdded, userAddedToGroup, personRemovedFromPickPool, personAssignedToUser } = slice.actions;
 export default slice.reducer;
 
 const url = '/groups';
@@ -69,18 +78,26 @@ export const addGroup = group =>
 
 export const addUserToGroup = user =>
     apiCallBegan({
-        url: `${url}/${user.groupname}`,
-        method: 'post',
+        url: `${url}/${user.group}`,
+        method: 'patch',
         data: user,
         onSuccess: userAddedToGroup.type
     })
 
 export const removePersonFromPickPool = personToGift =>
     apiCallBegan({
-        url: `${url}/${personToGift.group}/${personToGift._id}`,
-        method: 'delete',
-        data: personToGift,
-        onSuccess: personFromPickPoolRemoved.type
+        url,
+        method: 'patch',
+        data:  personToGift,
+        onSuccess: personRemovedFromPickPool.type
+    })
+
+export const assignPersonToUser = (user, personToGift) =>
+    apiCallBegan({
+        url: `${url}/${user.group}/${user._id}`,
+        method: 'patch',
+        data: { user, personToGift },
+        onSuccess: personAssignedToUser.type
     })
 
 // Selectors

@@ -1,10 +1,10 @@
 // secret santa name - DONE
-// secret santa gift list - my list
+// secret santa gift list - my list - DONE
 // gift priority // sort function - sort by number
-// person assignment
+// person assignment - DONE
 // access to person assigned gift list
 // gift selection - DONE
-// Render gift in list
+// Render gift in list - DONE
 
 import React from 'react';
 import Joi from 'joi-browser';
@@ -12,7 +12,7 @@ import { connect } from 'react-redux';
 
 import withRouter from '../../utilities/withRouter';
 import { addGiftToUser, getCurrentUser, loadUsers } from '../../store/users';
-import { getGroup, removePersonFromPickPool } from '../../store/groups';
+import { assignPersonToUser, getGroup, loadGroups, removePersonFromPickPool } from '../../store/groups';
 
 import Form from '../common/form/Form';
 import Lists from './ListToggle';
@@ -29,14 +29,15 @@ class SecretSanta extends Form {
         errors: {}
     }
 
-    componentDidMount() {
-        this.props.loadUsers();
+    async componentDidMount() {
+        await this.props.loadUsers();
+        await this.props.loadGroups();
         const { id: userId } = this.props.params;
-        const storeCurrentUser = this.props.currentUser(userId);
-        const localStorageCurrentUser = getCurrentUser(userId);
+        const [storeCurrentUser] = await this.props.currentUser(userId);
+        // const localStorageCurrentUser = getCurrentUser(userId);
 
-        if (storeCurrentUser._id === localStorageCurrentUser._id)
-            this.setState({ user: storeCurrentUser })
+        // if (storeCurrentUser._id === localStorageCurrentUser._id)
+        this.setState({ user: storeCurrentUser })
     }
 
     schema = {
@@ -65,13 +66,18 @@ class SecretSanta extends Form {
 
     btnClass = 'cursor-pointer rounded border border-black my-4 px-4 py-1 hover:bg-green-700 hover:text-white bg-white';
 
-    handleAssignPerson = () => {
-        const { pickPool } = this.props.getGroup(this.state.user.group)
-        const randomIndex = Math.random(pickPool.length * 1) - 1;
-        const personToGift = pickPool[randomIndex];
+    handleAssignPerson = async () => {
+        const { user } = this.state;
+        const [{ pickPool, secretSantas }] = await this.props.getGroup(user.group)
 
-        this.setState({ personToGift });
-        this.props.removePerson(personToGift);
+        const pickPoolFiltered = pickPool.filter(person => person._id !== user._id);
+        const randomIndex = Math.floor(Math.random() * pickPoolFiltered.length);
+        const personToGift = pickPoolFiltered[randomIndex];
+        const santa = secretSantas.find(person => person.email === personToGift.email);
+        
+        await this.props.assignPersonToUser(user, personToGift);
+        await this.props.removePersonFromPickPool(personToGift);
+        this.setState({ personToGift: santa });
     }
 
     doSubmit = () => {
@@ -88,7 +94,7 @@ class SecretSanta extends Form {
                 <div className='mx-auto py-6 h-fit w-[50%] flex flex-col bg-neutral-50 rounded space-y-10 items-center border border-black border-2 shadow-md shadow-white'>
 
                     <div className='w-full flex justify-around mb-4'>
-                        <h3>Secret Santa: {user.firstname}</h3>
+                        <h3>Secret Santa: {user ? user.firstname : ''}</h3>
                         <div className='flex space-x-4'>
                             {
                                 !personToGift._id &&
@@ -103,7 +109,7 @@ class SecretSanta extends Form {
                         </div>
                     </div>
 
-                    <Lists title={'Lists'} />
+                    {user ? <Lists title={'Lists'} userId={this.props.params.id} /> : null}
 
                     <form name='add-to-gift-list' onSubmit={this.handleSubmit} className='w-[50%] border-2 border-black rounded p-4 bg-green-600'>
 
@@ -138,8 +144,10 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     loadUsers: () => dispatch(loadUsers()),
+    loadGroups: () => dispatch(loadGroups()),
     addGift: (userId, gift) => dispatch(addGiftToUser(userId, gift)),
-    removePerson: person => dispatch(removePersonFromPickPool(person))
+    removePersonFromPickPool: person => dispatch(removePersonFromPickPool(person)),
+    assignPersonToUser: (userId, personId) => dispatch(assignPersonToUser(userId, personId)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(SecretSanta));

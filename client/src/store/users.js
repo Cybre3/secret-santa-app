@@ -1,4 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
+import _ from 'lodash';
+
 import { apiCallBegan } from './api';
 
 const slice = createSlice({
@@ -7,6 +9,7 @@ const slice = createSlice({
         list: [],
         loggedIn: [],
         loading: false,
+        emailVerified: false
     },
     reducers: {
         usersRequested: (users, action) => {
@@ -24,11 +27,15 @@ const slice = createSlice({
         },
 
         userEmailChecked: (users, action) => {
-
+            users.emailVerified = true;
         },
 
         userLogggedIn: (users, action) => {
-            users.loggedIn.push(action.payload);
+            const { _id, email, token } = action.payload;
+
+            localStorage.setItem('token', token);
+            users.loggedIn.push({ _id, email });
+
             users.loading = false;
         },
 
@@ -38,11 +45,11 @@ const slice = createSlice({
         },
 
         giftAddedToUser: (users, action) => {
-            const { gifts, userId } = action.payload;
+            const { gift, userId } = action.payload;
             const userIndex = users.list.findIndex(user => user._id === userId);
             const user = users.list[userIndex];
 
-            user.gifts.push(gifts);
+            user.giftList.push(gift);
 
             // look into optimizing implentation and use logged in users instead.
         }
@@ -55,17 +62,15 @@ export default slice.reducer;
 
 const url = '/users';
 
-export const checkUserEmail = user =>
+export const checkUserEmail = email =>
     apiCallBegan({
-        url,
-        method: 'post',
-        data: user,
+        url: `/auth/${email}`,
         onSuccess: userEmailChecked.type
     })
 
 export const loginUser = user =>
     apiCallBegan({
-        url,
+        url: '/auth',
         method: 'post',
         data: user,
         onSuccess: userLogggedIn.type
@@ -76,9 +81,10 @@ export const registerUser = user =>
     apiCallBegan({
         url,
         method: 'post',
-        data: user,
-        onSucess: userRegistered.type
-    })
+        data: _.omit(user, 'repassword'),
+        onSuccess: userRegistered.type
+    });
+
 
 export const loadUsers = () => (dispatch, getState) => {
     // const { lastFetch } = getState().entities.cars;
@@ -101,14 +107,9 @@ export const loadUsers = () => (dispatch, getState) => {
 export const addGiftToUser = (userId, gift) =>
     apiCallBegan({
         url: `${url}/secret-santa/${userId}`,
-        method: 'post',
+        method: 'patch',
         data: { userId, gift },
         onSuccess: giftAddedToUser.type
-    })
-
-export const assignPersonToUser = (userId, personId) =>
-    apiCallBegan({
-
     })
 
 
@@ -117,4 +118,9 @@ export const assignPersonToUser = (userId, personId) =>
 export const getCurrentUser = userId => createSelector(
     state => state.entities.users,
     users => users.list.filter(user => user._id === userId)
+)
+
+export const getCurrentUserByEmail = userEmail => createSelector(
+    state => state.entities.users,
+    users => users.list.filter(user => user.email === userEmail)
 )

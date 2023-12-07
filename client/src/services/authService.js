@@ -1,4 +1,6 @@
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
+
+const tokenKey = 'token';
 
 export function getCurrentUser() {
     try {

@@ -1,54 +1,38 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Tab } from '@headlessui/react';
-// import { getCurrentUser } from '../../services/authService';
-// import { getUserEvents } from '../../services/registrarService';
-// import _ from 'lodash';
+import { useSelector } from 'react-redux';
+import { getCurrentUser } from '../../store/users';
+import { NavLink } from 'react-router-dom';
 
 function Lists(props) {
+    const [giftList, setGiftList] = useState([]);
+    const [user] = useSelector(getCurrentUser(props.userId));
 
-    /* 
-        const eventObj = {};
-        const allEvents = await getAllEvents();
-        allEvents.map(event => eventObj[title] = {..._.omit(event, 'title'});
-    */
-
-    useEffect(() => {
-        const userEvents = async () => {
-            // const user = getCurrentUser();
-            // const { data: userEvents } = await getUserEvents('cherishe1999@yahoo.com');
-            // const userEventNames = userEvents.map(regEvents => regEvents.category)
-            // console.log(userEventNames);
-        }
-        userEvents();
-    }, [])
-
-    let [categories] = useState({
-        'My List':
-            // user.events
-            [
-                {
-                    id: 1,
-                    title: 'My Gift 1 name',
-                    data: 'Gift 1 link',
-                    link: '/'
-                    // image: internationalLunch,
-                },
-                {
-                    id: 2,
-                    title: 'My Gift 2 name',
-                    data: 'Gift 2 link',
-                    link: '/'
-                    // image: internationalLunch,
-                },
-                {
-                    id: 3,
-                    title: 'My Gift 3 name',
-                    data: 'Gift 3 link',
-                    link: '/'
-                    // image: internationalLunch,
-                },
-
-            ],
+    const categories = useMemo(() =>
+    ({
+        'My List': giftList ? giftList : [
+            {
+                id: 1,
+                title: 'My Gift 1 name',
+                data: 'Gift 1 link',
+                link: '/'
+                // image: internationalLunch,
+            },
+            {
+                id: 2,
+                title: 'My Gift 2 name',
+                data: 'Gift 2 link',
+                link: '/'
+                // image: internationalLunch,
+            },
+            {
+                id: 3,
+                title: 'My Gift 3 name',
+                data: 'Gift 3 link',
+                link: '/'
+                // image: internationalLunch,
+            },
+        ],
         'Person List': [
             {
                 id: 1,
@@ -72,7 +56,17 @@ function Lists(props) {
                 // image: internationalLunch,
             },
         ],
-    });
+    })
+        , [giftList])
+
+    const handleLoadGifts = () => {
+        setGiftList(user.giftList)
+    }
+
+    const handleDelete = name => {
+        console.log(name)
+        // generate random ids for gifts
+    }
 
 
     function classNames(...classes) {
@@ -91,7 +85,7 @@ function Lists(props) {
                             key={category}
                             className={({ selected }) =>
                                 classNames(
-                                    'w-full rounded-md py-2 text-sm font-medium leading-5 text-white',
+                                    'w-full rounded-md py-2 text-sm font-medium leading-5 text-black',
                                     'ring-white ring-opacity-60 ring-offset-2 ring-offset-black focus:outline-none focus:ring-2',
                                     selected ? 'bg-white shadow text-black' : 'text-white hover:bg-white/[0.12] hover:text-white'
                                 )
@@ -106,13 +100,13 @@ function Lists(props) {
 
                     {Object.values(categories).map((category, idx) => (
                         <Tab.Panel key={idx} className={'w-full'}>
-                            
+
                             <ul className="space-y-3">
 
-                                {category.map((info) => (
+                                {category && category.map((info) => (
                                     <li
-                                        key={info.id}
-                                        className={`relative rounded-md ${!info.image ? 'bg-white' : ''}`}
+                                        key={info._id || info.id || info.name}
+                                        className={`relative rounded-md ${!info.image ? 'bg-white' : ''} flex border`}
                                     >
 
                                         <div
@@ -121,25 +115,15 @@ function Lists(props) {
                                         >
                                             {!info.image && (
                                                 <Fragment>
-                                                    <h3 className="text-md font-medium leading-5 font-bold">{info.title}</h3>
+                                                    <NavLink to={info.link} className="text-md font-medium leading-5 font-bold">{info.name}</NavLink>
                                                     <ul className="mt-1 flex space-x-1 text-sm leading-4 text-gray-900">
-                                                        <li>{info.data}</li>
+                                                        <li>{info.link}</li>
                                                     </ul>
                                                 </Fragment>
                                             )}
-
-                                            <ul className="mt-1 flex space-x-1 text-md font-bold leading-4 text-gray-900">
-                                                <li>{info.date}</li>
-                                            </ul>
-
                                         </div>
 
-                                        {info.image && (
-                                            <img src={info.image} alt="" className="w-full h-48 rounded-md" />
-                                        )}
-
-                                        {/* eslint-disable-next-line */}
-                                        <a href={info.link} className={'absolute inset-0 rounded-md'} />
+                                        <button onClick={() => handleDelete(info.name)} className='ml-auto bg-red-200 text-red-600 rounded-full h-fit p-2 py-0.5 self-center mr-3 shadow-sm border hover:bg-red-400 hover:text-black hover:border-black hover:shadow-black'>Delete</button>
                                     </li>
                                 ))}
                             </ul>
@@ -147,9 +131,11 @@ function Lists(props) {
                     ))}
                 </Tab.Panels>
             </Tab.Group>
+            <button onClick={() => handleLoadGifts()} className='bg-neutral-400 p-2 py-1 rounded ml-auto block mt-5 mr-4 ring-2 ring-neutral-50 ring-offset-4 outline outline-2 outline-neutral-50 outline-offset-2 shadow shadow-lg shadow-transparent border border-black hover:ring-black hover:outline-green-600 hover:shadow-green-700 hover:border-transparent' >Load Gifts</button>
+
         </div>
     );
 
 }
 
-export default Lists
+export default Lists;
