@@ -9,12 +9,12 @@ const userSchema = new Schema({
     firstname: String,
     email: String,
     password: String,
-    role: String,
-    group: String,
+    groups: {
+        type: Array,
+        default: []
+    },
     admin: Boolean,
-    giftList: Array,
     lastSignedIn: String,
-    personToGift: Object
 });
 
 // makeAllRequired(userSchema);

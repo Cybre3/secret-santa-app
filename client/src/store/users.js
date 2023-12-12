@@ -104,7 +104,7 @@ export const loadUsers = () => (dispatch, getState) => {
 
 }
 
-export const addGiftToUser = (userId, gift) =>
+export const addGiftToUser = (userId, gift, groupname) =>
     apiCallBegan({
         url: `${url}/secret-santa/${userId}`,
         method: 'patch',

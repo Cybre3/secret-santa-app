@@ -1,4 +1,5 @@
 const { User } = require('../models/userModel');
+const _ = require('lodash');
 
 module.exports = {
     get: {
@@ -15,7 +16,7 @@ module.exports = {
             let user = await User.findOne({ email: userEntry.email });
             if (user) return res.status(400).send({ msg: `User with email ${user.email} already registered!` });
 
-            user = new User({ ...req.body });
+            user = new User(_.omit(userEntry, ['group', 'role']));
             await user.save();
 
             res.status(201).send(user);

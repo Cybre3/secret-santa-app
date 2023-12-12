@@ -16,6 +16,7 @@ import { assignPersonToUser, getGroup, loadGroups, removePersonFromPickPool } fr
 
 import Form from '../common/form/Form';
 import Lists from './ListToggle';
+import ChooseGroup from './ChooseGroup';
 
 class SecretSanta extends Form {
     state = {
@@ -26,13 +27,14 @@ class SecretSanta extends Form {
         },
         personToGift: {},
         user: {},
+        chooseBtnVisible: false,
         errors: {}
     }
 
     async componentDidMount() {
+        const { id: userId } = this.props.params;
         await this.props.loadUsers();
         await this.props.loadGroups();
-        const { id: userId } = this.props.params;
         const [storeCurrentUser] = await this.props.currentUser(userId);
         // const localStorageCurrentUser = getCurrentUser(userId);
 
@@ -50,19 +52,19 @@ class SecretSanta extends Form {
         { id: 1, name: 'priority', value: 1 },
         { id: 2, name: 'priority', value: 2 },
         { id: 3, name: 'priority', value: 3 }
-    ]
+    ];
 
     inputClasses = {
         inputContainer: 'flex justify-between space-x-2 w-full',
         inputClass: 'rounded-sm outline outline-1 pl-3 py-1 tx-sm w-[70%]',
         labelClass: 'text-white'
-    }
+    };
 
     dropdownClasses = {
         inputContainer: 'flex justify-between space-x-2 w-full',
         inputClass: 'rounded-sm outline outline-1 tx-sm w-[20%] text-center !mr-20',
         labelClass: 'text-white'
-    }
+    };
 
     btnClass = 'cursor-pointer rounded border border-black my-4 px-4 py-1 hover:bg-green-700 hover:text-white bg-white';
 
@@ -74,10 +76,14 @@ class SecretSanta extends Form {
         const randomIndex = Math.floor(Math.random() * pickPoolFiltered.length);
         const personToGift = pickPoolFiltered[randomIndex];
         const santa = secretSantas.find(person => person.email === personToGift.email);
-        
+
         await this.props.assignPersonToUser(user, personToGift);
         await this.props.removePersonFromPickPool(personToGift);
         this.setState({ personToGift: santa });
+    }
+
+    handleChooseGroup = () => {
+        this.setState({ chooseBtnVisible: this.state.chooseBtnVisible ? false : true });
     }
 
     doSubmit = () => {
@@ -86,7 +92,7 @@ class SecretSanta extends Form {
     }
 
     render() {
-        const { user, personToGift } = this.state;
+        const { user, personToGift, chooseBtnVisible } = this.state;
 
         return (
             <div className='w-screen h-screen overflow-hidden bg-green-800 flex items-center'>
@@ -95,6 +101,11 @@ class SecretSanta extends Form {
 
                     <div className='w-full flex justify-around mb-4'>
                         <h3>Secret Santa: {user ? user.firstname : ''}</h3>
+                        {
+                            chooseBtnVisible ? 
+                                <ChooseGroup /> :
+                                <button className='bg-neutral-300 p-2 py-1 border border-black rounded-md' onClick={this.handleChooseGroup}>Choose Group</button>
+                        }
                         <div className='flex space-x-4'>
                             {
                                 !personToGift._id &&
@@ -147,7 +158,7 @@ const mapDispatchToProps = dispatch => ({
     loadGroups: () => dispatch(loadGroups()),
     addGift: (userId, gift) => dispatch(addGiftToUser(userId, gift)),
     removePersonFromPickPool: person => dispatch(removePersonFromPickPool(person)),
-    assignPersonToUser: (userId, personId) => dispatch(assignPersonToUser(userId, personId)),
+    assignPersonToUser: (user, person) => dispatch(assignPersonToUser(user, person)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(SecretSanta));

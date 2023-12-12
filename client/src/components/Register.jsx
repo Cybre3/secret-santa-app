@@ -51,10 +51,7 @@ class Register extends Form {
         const userEntry = this.state.data;
         try {
             await this.props.registerUser(userEntry);
-            this.props.loadUsers();
-            this.props.loadGroups();
-            const [currentUser] = this.props.getCurrentUserByEmail(userEntry.email)
-            await this.props.addUserToGroup(currentUser);
+            await this.props.addUserToGroup(userEntry);
 
             window.location = `/login`;
         } catch (error) {
@@ -77,7 +74,7 @@ class Register extends Form {
                     {this.renderDropdown('role', 'What is you role in Secret Santa?', this.participantOptions, this.inputClasses)}
                     {this.renderDropdown('group', 'Group', this.groupOptions, this.inputClasses)}
 
-                    {this.renderButton('Continue', '', '', this.btnClass)}
+                    {this.renderButton('Register', '', '', this.btnClass)}
 
                     <p>Already a registered Secret Santa? Login
                         <NavLink to='/login' className='text-blue-700 ml-1'>

@@ -18,6 +18,8 @@ module.exports = {
             const [giftInSystem] = user.giftList.filter(giftInList => giftInList.name === gift.name)
             if (giftInSystem) return res.status(400).send({ msg: `Gift already in list. Enter different gift name.` });
 
+            
+
             user.giftList.push(gift);
 
             await user.save();

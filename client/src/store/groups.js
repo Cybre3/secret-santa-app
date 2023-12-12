@@ -1,5 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { apiCallBegan } from './api';
+import _ from 'lodash';
 
 const slice = createSlice({
     name: 'groups',
@@ -76,11 +77,11 @@ export const addGroup = group =>
         onSuccess: groupAdded.type
     })
 
-export const addUserToGroup = user =>
+export const addUserToGroup = (user) =>
     apiCallBegan({
         url: `${url}/${user.group}`,
         method: 'patch',
-        data: user,
+        data: _.omit(user, 'repassword'),
         onSuccess: userAddedToGroup.type
     })
 
@@ -88,7 +89,7 @@ export const removePersonFromPickPool = personToGift =>
     apiCallBegan({
         url,
         method: 'patch',
-        data:  personToGift,
+        data: personToGift,
         onSuccess: personRemovedFromPickPool.type
     })
 

@@ -1,5 +1,6 @@
 const { User } = require('../models/userModel');
 const { Group } = require('../models/groupModel');
+const _ = require('lodash');
 
 module.exports = {
     get: {
@@ -12,21 +13,29 @@ module.exports = {
 
     patch: {
         addUserToGroup: async (req, res) => {
-            const userInfo = req.body;
+            const userEntry = req.body;
+            const { group: groupname } = req.params;
+            const UserOmittedValues = _.pick(userEntry, ['firstname', 'email']);
 
-            const user = await User.findOne({ email: userInfo.email });
+            const user = await User.findOne({ email: userEntry.email });
             if (!user) return res.status(404).send({ msg: `User Not found!` });
 
-            const userGroup = await Group.findOne({ name: user.group })
+            const userGroup = await Group.findOne({ name: groupname });
+            if (!userGroup) return res.status(404).send('Group not found.')
 
-            if (user.role === 'Participant/Secret Santa') {
-                userGroup.secretSantas.push(user);
-                userGroup.pickPool.push(user);
-            } else if (user.role === 'Spectator/Watcher') {
-                userGroup.spectators.push(user)
+            user.groups = [];
+            user.groups.push({ name: userEntry.group, role: userEntry.role, giftList: [], active: true });
+
+            if (userEntry.role === 'Participant/Secret Santa') {
+                userGroup.secretSantas.push(UserOmittedValues);
+                userGroup.pickPool.push(UserOmittedValues);
+            } else if (userEntry.role === 'Spectator/Watcher') {
+                userGroup.spectators.push(UserOmittedValues)
             }
-            userGroup.users.push(user);
+            userGroup.users.push(UserOmittedValues);
 
+
+            await user.save();
             await userGroup.save();
 
             res.status(201).send({ userGroup, user });
@@ -54,12 +63,12 @@ module.exports = {
             if (!group) return res.status(404).send('Group not found.')
 
             const santaIndex = group.secretSantas.findIndex(santa => santa.email === user.email);
-            ;
 
             group.secretSantas[santaIndex].personToGift = personToGift;
-            await group.save();
+            const saved = await group.save();
 
-            res.status(200).send({personToGift, user});
+            res.status(200).send(saved);
+            // res.status(200).send({personToGift, user});
         }
     },
 

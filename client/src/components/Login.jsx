@@ -66,7 +66,7 @@ class Login extends Form {
                     {this.renderInput('email', 'Email', 'email', '', this.inputClasses)}
                     {this.state.emailVerified && this.props.users.emailVerified && this.renderInput('password', 'Password', 'password', '', this.inputClasses)}
 
-                    {this.renderButton('Continue', '', '', this.btnClass)}
+                    {this.renderButton(this.state.emailVerified ? 'Login' : 'Continue', '', '', this.btnClass)}
 
                     <p>Not a registered Secret Santa? Register
                         <NavLink to='/register' className='text-blue-700 ml-1'>
