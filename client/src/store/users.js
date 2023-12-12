@@ -9,7 +9,8 @@ const slice = createSlice({
         list: [],
         loggedIn: [],
         loading: false,
-        emailVerified: false
+        emailVerified: false,
+        currentGroup: ''
     },
     reducers: {
         usersRequested: (users, action) => {
@@ -45,19 +46,22 @@ const slice = createSlice({
         },
 
         giftAddedToUser: (users, action) => {
-            const { gift, userId } = action.payload;
+            const { gift, userId, groupname } = action.payload;
             const userIndex = users.list.findIndex(user => user._id === userId);
             const user = users.list[userIndex];
+            const currentGroupIndex = user.groups.findIndex(group => group.name === groupname);
 
-            user.giftList.push(gift);
+            user.groups[currentGroupIndex].giftList.push(gift);
+        },
 
-            // look into optimizing implentation and use logged in users instead.
+        currentGroupSet: (users, action) => {
+            users.currentGroup = action.payload.currentGroup;
         }
     }
 })
 
 // Action Creators
-const { userEmailChecked, userLogggedIn, userRegistered, usersRequested, usersRequestFailed, usersReceived, giftAddedToUser } = slice.actions;
+const { userEmailChecked, userLogggedIn, userRegistered, usersRequested, usersRequestFailed, usersReceived, giftAddedToUser, currentGroupSet } = slice.actions;
 export default slice.reducer;
 
 const url = '/users';
@@ -106,12 +110,19 @@ export const loadUsers = () => (dispatch, getState) => {
 
 export const addGiftToUser = (userId, gift, groupname) =>
     apiCallBegan({
-        url: `${url}/secret-santa/${userId}`,
+        url: `${url}/secret-santa`,
         method: 'patch',
-        data: { userId, gift },
+        data: { userId, gift, groupname },
         onSuccess: giftAddedToUser.type
     })
 
+export const setCurrentGroup = (group, id) =>
+    apiCallBegan({
+        url,
+        method: 'patch',
+        data: { group, id },
+        onSuccess: currentGroupSet.type
+    })
 
 // Selectors
 

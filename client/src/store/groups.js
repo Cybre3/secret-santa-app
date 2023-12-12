@@ -109,10 +109,6 @@ export const getPersonData = person => createSelector(
     })
 )
 
-export const getGroup = groupname => createSelector(
-    state => state.entities.groups,
-    groups => groups.list.filter(group => group.name === groupname)
-)
 
 
 // groups

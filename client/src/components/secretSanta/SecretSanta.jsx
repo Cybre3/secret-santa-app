@@ -12,7 +12,7 @@ import { connect } from 'react-redux';
 
 import withRouter from '../../utilities/withRouter';
 import { addGiftToUser, getCurrentUser, loadUsers } from '../../store/users';
-import { assignPersonToUser, getGroup, loadGroups, removePersonFromPickPool } from '../../store/groups';
+import { assignPersonToUser, loadGroups, removePersonFromPickPool } from '../../store/groups';
 
 import Form from '../common/form/Form';
 import Lists from './ListToggle';
@@ -28,18 +28,21 @@ class SecretSanta extends Form {
         personToGift: {},
         user: {},
         chooseBtnVisible: false,
+        group: '',
         errors: {}
     }
 
     async componentDidMount() {
+
         const { id: userId } = this.props.params;
         await this.props.loadUsers();
         await this.props.loadGroups();
         const [storeCurrentUser] = await this.props.currentUser(userId);
         // const localStorageCurrentUser = getCurrentUser(userId);
-
+        
         // if (storeCurrentUser._id === localStorageCurrentUser._id)
         this.setState({ user: storeCurrentUser })
+        if (storeCurrentUser.currentGroup) this.setState({ group: storeCurrentUser.currentGroup })
     }
 
     schema = {
@@ -59,19 +62,19 @@ class SecretSanta extends Form {
         inputClass: 'rounded-sm outline outline-1 pl-3 py-1 tx-sm w-[70%]',
         labelClass: 'text-white'
     };
-
+    
     dropdownClasses = {
         inputContainer: 'flex justify-between space-x-2 w-full',
         inputClass: 'rounded-sm outline outline-1 tx-sm w-[20%] text-center !mr-20',
         labelClass: 'text-white'
     };
-
+    
     btnClass = 'cursor-pointer rounded border border-black my-4 px-4 py-1 hover:bg-green-700 hover:text-white bg-white';
-
+    
     handleAssignPerson = async () => {
         const { user } = this.state;
         const [{ pickPool, secretSantas }] = await this.props.getGroup(user.group)
-
+        
         const pickPoolFiltered = pickPool.filter(person => person._id !== user._id);
         const randomIndex = Math.floor(Math.random() * pickPoolFiltered.length);
         const personToGift = pickPoolFiltered[randomIndex];
@@ -85,15 +88,15 @@ class SecretSanta extends Form {
     handleChooseGroup = () => {
         this.setState({ chooseBtnVisible: this.state.chooseBtnVisible ? false : true });
     }
-
-    doSubmit = () => {
-        this.props.addGift(this.props.params.id, this.state.data);
+    
+    doSubmit = async () => {
+        this.props.addGift(this.props.params.id, this.state.data, await this.state.group);
         this.setState({ data: { name: '', link: '', priority: 0 } });
     }
-
+    
     render() {
         const { user, personToGift, chooseBtnVisible } = this.state;
-
+        
         return (
             <div className='w-screen h-screen overflow-hidden bg-green-800 flex items-center'>
 
@@ -102,8 +105,8 @@ class SecretSanta extends Form {
                     <div className='w-full flex justify-around mb-4'>
                         <h3>Secret Santa: {user ? user.firstname : ''}</h3>
                         {
-                            chooseBtnVisible ? 
-                                <ChooseGroup /> :
+                            chooseBtnVisible ?
+                                <ChooseGroup /> : 
                                 <button className='bg-neutral-300 p-2 py-1 border border-black rounded-md' onClick={this.handleChooseGroup}>Choose Group</button>
                         }
                         <div className='flex space-x-4'>
@@ -149,14 +152,14 @@ class SecretSanta extends Form {
 const mapStateToProps = state => ({
     users: state.entities.users.list,
     groups: state.entities.groups.list,
-    currentUser: userId => getCurrentUser(userId)(state),
-    getGroup: groupname => getGroup(groupname)(state)
+    currentGroup: state.entities.users.currentGroup,
+    currentUser: userId => getCurrentUser(userId)(state)
 })
 
 const mapDispatchToProps = dispatch => ({
     loadUsers: () => dispatch(loadUsers()),
     loadGroups: () => dispatch(loadGroups()),
-    addGift: (userId, gift) => dispatch(addGiftToUser(userId, gift)),
+    addGift: (userId, gift, groupname) => dispatch(addGiftToUser(userId, gift, groupname)),
     removePersonFromPickPool: person => dispatch(removePersonFromPickPool(person)),
     assignPersonToUser: (user, person) => dispatch(assignPersonToUser(user, person)),
 })

@@ -21,6 +21,22 @@ module.exports = {
 
             res.status(201).send(user);
         },
+
+    },
+
+    patch: {
+        setCurrentGroup: async (req, res) => {
+            const { group, id } = req.body;
+
+            let user = await User.findById(id);
+            if (!user) return res.status(404).send({ msg: `User not found.` });
+
+            user.currentGroup = group;
+            await user.save();
+
+            res.status(200).send(user);
+        }
+
     },
     delete: {}
 }

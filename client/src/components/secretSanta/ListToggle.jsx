@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Tab } from '@headlessui/react';
 import { useSelector } from 'react-redux';
 import { getCurrentUser } from '../../store/users';
@@ -7,6 +7,19 @@ import { NavLink } from 'react-router-dom';
 function Lists(props) {
     const [giftList, setGiftList] = useState([]);
     const [user] = useSelector(getCurrentUser(props.userId));
+
+    useEffect(() => {
+        async function getGroups() {
+            try {
+                const groups = await user.groups;
+                const [group] = groups.filter(group => group.name === user.currentGroup);
+                setGiftList(group.giftList);
+            } catch (error) {
+                console.log(error.message)
+            }
+        }
+        getGroups();
+    }, [user, giftList])
 
     const categories = useMemo(() =>
     ({
@@ -59,8 +72,14 @@ function Lists(props) {
     })
         , [giftList])
 
-    const handleLoadGifts = () => {
-        setGiftList(user.giftList)
+    const handleLoadGifts = async () => {
+        try {
+            const groups = await user.groups;
+            const [group] = groups.filter(group => group.name === user.currentGroup);
+            setGiftList(group.giftList);
+        } catch (error) {
+            console.log(error.message)
+        }
     }
 
     const handleDelete = name => {
@@ -131,7 +150,7 @@ function Lists(props) {
                     ))}
                 </Tab.Panels>
             </Tab.Group>
-            <button onClick={() => handleLoadGifts()} className='bg-neutral-400 p-2 py-1 rounded ml-auto block mt-5 mr-4 ring-2 ring-neutral-50 ring-offset-4 outline outline-2 outline-neutral-50 outline-offset-2 shadow shadow-lg shadow-transparent border border-black hover:ring-black hover:outline-green-600 hover:shadow-green-700 hover:border-transparent' >Load Gifts</button>
+            <button onClick={handleLoadGifts} className='bg-neutral-400 p-2 py-1 rounded ml-auto block mt-5 mr-4 ring-2 ring-neutral-50 ring-offset-4 outline outline-2 outline-neutral-50 outline-offset-2 shadow shadow-lg shadow-transparent border border-black hover:ring-black hover:outline-green-600 hover:shadow-green-700 hover:border-transparent' >Load Gifts</button>
 
         </div>
     );

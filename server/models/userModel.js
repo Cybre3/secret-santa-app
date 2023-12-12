@@ -15,6 +15,7 @@ const userSchema = new Schema({
     },
     admin: Boolean,
     lastSignedIn: String,
+    currentGroup: String
 });
 
 // makeAllRequired(userSchema);
