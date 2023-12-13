@@ -1,4 +1,6 @@
+require('dotenv').config();
 const config = require('config');
+
 
 module.exports = function getDB(app) {
     let db;
