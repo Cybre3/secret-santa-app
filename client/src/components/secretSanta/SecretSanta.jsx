@@ -89,6 +89,10 @@ class SecretSanta extends Form {
         this.setState({ chooseBtnVisible: this.state.chooseBtnVisible ? false : true });
     }
 
+    handleSetVisible = boolean => {
+        this.setState({ chooseBtnVisible: boolean })
+    }
+
     doSubmit = async () => {
         this.props.addGift(this.props.params.id, this.state.data, await this.state.group);
         this.setState({ data: { name: '', link: '', priority: 0 } });
@@ -100,14 +104,29 @@ class SecretSanta extends Form {
         return (
             <div className='w-screen h-screen overflow-hidden bg-green-800 flex items-center'>
 
-                <div className='mx-auto py-6 h-fit w-[50%] flex flex-col bg-neutral-50 rounded space-y-10 items-center border border-black border-2 shadow-md shadow-white'>
+                <div className='mx-auto py-6 h-full w-[50%] flex flex-col bg-neutral-50 rounded space-y-10 items-center border border-black border-2 shadow-md shadow-white'>
 
                     <div className='w-full flex justify-around mb-4'>
                         <h3>Secret Santa: {user ? user.firstname : ''}</h3>
                         {
                             chooseBtnVisible ?
-                                <ChooseGroup /> :
-                                <button className='bg-neutral-300 p-2 py-1 border border-black rounded-md' onClick={this.handleChooseGroup}>Choose Group</button>
+                                <ChooseGroup visible={chooseBtnVisible} setVisible={this.handleSetVisible} /> :
+                                (
+                                    <div>
+                                        {
+                                            user.currentGroup ?
+                                                <p
+                                                    onClick={() => this.setState({ chooseBtnVisible: true })}
+                                                    className='hover:underline hover:cursor-pointer hover:text-red-600'
+                                                >
+                                                    {user.currentGroup}
+                                                </p>
+                                                :
+                                                <button className='bg-neutral-300 p-2 py-1 border border-black rounded-md' onClick={this.handleChooseGroup}>Choose Group</button>
+                                        }
+
+                                    </div>
+                                )
                         }
                         <div className='flex space-x-4'>
                             {
@@ -125,7 +144,7 @@ class SecretSanta extends Form {
 
                     {user ? <Lists title={'Lists'} userId={this.props.params.id} /> : null}
 
-                    <form name='add-to-gift-list' onSubmit={this.handleSubmit} className='w-[50%] border-2 border-black rounded p-4 bg-green-600'>
+                    <form name='add-to-gift-list' onSubmit={this.handleSubmit} className='border-2 border-black rounded p-4 px-6 bg-green-600 absolute bottom-4'>
 
                         <div className='text-center mb-6 text-white'>
                             <h2 className='font-bold text-lg uppercase'>Add Gift To My List</h2>

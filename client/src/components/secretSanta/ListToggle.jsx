@@ -8,6 +8,7 @@ import { getCurrentUser } from '../../store/users';
 function Lists(props) {
     const [giftList, setGiftList] = useState([]);
     const [personGiftList, setPersonGiftList] = useState([]);
+    const [myList, setMyList] = useState(true);
     const [user] = useSelector(getCurrentUser(props.userId));
     const users = useSelector(state => state.entities.users);
 
@@ -27,7 +28,7 @@ function Lists(props) {
                 const [userCurrentGroup] = user.groups.filter(group => group.name === user.currentGroup);
                 const personToGift = userCurrentGroup.personToGift;
                 const [personToGiftInfo] = users.list.filter(user => user.email === personToGift.email);
-                
+
                 const groupIndex = personToGiftInfo.groups.findIndex(group => group.name === user.currentGroup);
                 const personGiftList = personToGiftInfo.groups[groupIndex].giftList;
 
@@ -130,6 +131,7 @@ function Lists(props) {
                                     selected ? 'bg-white shadow text-black' : 'text-white hover:bg-white/[0.12] hover:text-white'
                                 )
                             }
+                            onClick={() => setMyList(category === 'My List' ? true : false)}
                         >
                             {category}
                         </Tab>
@@ -163,7 +165,10 @@ function Lists(props) {
                                             )}
                                         </div>
 
-                                        <button onClick={() => handleDelete(info.name)} className='ml-auto bg-red-200 text-red-600 rounded-full h-fit p-2 py-0.5 self-center mr-3 shadow-sm border hover:bg-red-400 hover:text-black hover:border-black hover:shadow-black'>Delete</button>
+                                        {
+                                            myList &&
+                                            <button onClick={() => handleDelete(info.name)} className='ml-auto bg-red-200 text-red-600 rounded-full h-fit p-2 py-0.5 self-center mr-3 shadow-sm border hover:bg-red-400 hover:text-black hover:border-black hover:shadow-black'>Delete</button>
+                                        }
                                     </li>
                                 ))}
                             </ul>
