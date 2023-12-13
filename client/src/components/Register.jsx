@@ -11,10 +11,10 @@ import { addUserToGroup, loadGroups } from '../store/groups';
 class Register extends Form {
     state = {
         data: {
-            firstname: 'Starrika',
-            email: 'cybre3@gmail.com',
-            password: '123456',
-            repassword: '123456',
+            firstname: '',
+            email: '',
+            password: '',
+            repassword: '',
             role: '',
             group: ''
         },
