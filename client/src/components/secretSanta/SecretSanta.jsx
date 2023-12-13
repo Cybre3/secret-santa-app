@@ -2,7 +2,7 @@
 // secret santa gift list - my list - DONE
 // gift priority // sort function - sort by number
 // person assignment - DONE
-// access to person assigned gift list
+// access to person assigned gift list - DONE
 // gift selection - DONE
 // Render gift in list - DONE
 
@@ -39,7 +39,7 @@ class SecretSanta extends Form {
         const [storeCurrentUser] = await this.props.currentUser(userId);
         const groupIndex = storeCurrentUser.groups.findIndex(group => group.name === storeCurrentUser.currentGroup);
         const personToGift = storeCurrentUser.groups[groupIndex].personToGift;
-        
+
         this.setState({ user: storeCurrentUser })
         if (storeCurrentUser.currentGroup) this.setState({ group: storeCurrentUser.currentGroup })
         if (personToGift) this.setState({ personToGift })

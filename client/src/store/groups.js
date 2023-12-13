@@ -89,7 +89,7 @@ export const removePersonFromPickPool = (personToGift, groupname) =>
     apiCallBegan({
         url,
         method: 'patch',
-        data: {personToGift, groupname},
+        data: { personToGift, groupname },
         onSuccess: personRemovedFromPickPool.type
     })
 

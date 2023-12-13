@@ -7,7 +7,9 @@ import { getCurrentUser } from '../../store/users';
 
 function Lists(props) {
     const [giftList, setGiftList] = useState([]);
+    const [personGiftList, setPersonGiftList] = useState([]);
     const [user] = useSelector(getCurrentUser(props.userId));
+    const users = useSelector(state => state.entities.users);
 
     useEffect(() => {
         async function getGroups() {
@@ -19,16 +21,26 @@ function Lists(props) {
                 console.log(error.message)
             }
         }
-        getGroups();
-    }, [user, giftList])
 
-    /* 
-     if(personToGift) {
-            const person = getUser(personToGift.email);
-            const groupIndex = person.groups.findIndex(group => group.name === this.state.user.currentGroup);
-            const personGiftList = person.groups[groupIndex].giftList;
+        async function getPersonGiftList() {
+            try {
+                const [userCurrentGroup] = user.groups.filter(group => group.name === user.currentGroup);
+                const personToGift = userCurrentGroup.personToGift;
+                const [personToGiftInfo] = users.list.filter(user => user.email === personToGift.email);
+                
+                const groupIndex = personToGiftInfo.groups.findIndex(group => group.name === user.currentGroup);
+                const personGiftList = personToGiftInfo.groups[groupIndex].giftList;
+
+                setPersonGiftList(personGiftList);
+            } catch (error) {
+                console.log(error.message)
+            }
         }
-    */
+
+        getGroups();
+        getPersonGiftList();
+
+    }, [user, giftList, users.list]);
 
     const categories = useMemo(() =>
     ({
@@ -55,7 +67,7 @@ function Lists(props) {
                 // image: internationalLunch,
             },
         ],
-        'Person List': [
+        'Person List': personGiftList ? personGiftList : [
             {
                 id: 1,
                 title: 'Person Gift 1 name',
@@ -79,7 +91,7 @@ function Lists(props) {
             },
         ],
     })
-        , [giftList])
+        , [giftList, personGiftList])
 
     const handleLoadGifts = async () => {
         try {
@@ -159,7 +171,7 @@ function Lists(props) {
                     ))}
                 </Tab.Panels>
             </Tab.Group>
-            <button onClick={handleLoadGifts} className='bg-neutral-400 p-2 py-1 rounded ml-auto block mt-5 mr-4 ring-2 ring-neutral-50 ring-offset-4 outline outline-2 outline-neutral-50 outline-offset-2 shadow shadow-lg shadow-transparent border border-black hover:ring-black hover:outline-green-600 hover:shadow-green-700 hover:border-transparent' >Load Gifts</button>
+            <button onClick={handleLoadGifts} className='bg-neutral-400 p-2 py-1 rounded ml-auto block mt-5 mr-4 ring-2 ring-neutral-50 ring-offset-4 outline outline-2 outline-neutral-50 outline-offset-2 shadow shadow-lg shadow-transparent border border-black hover:ring-black hover:outline-green-600 hover:shadow-green-700 hover:border-transparent' >Load My Gifts</button>
 
         </div>
     );
