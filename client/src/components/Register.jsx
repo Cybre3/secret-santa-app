@@ -20,6 +20,7 @@ class Register extends Form {
         },
         errors: {}
     }
+    // set current group
 
     schema = {
         _id: Joi.string(),

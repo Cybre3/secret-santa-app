@@ -15,6 +15,7 @@ module.exports = {
 
             let user = await User.findOne({ email: userEntry.email });
             if (user) return res.status(400).send({ msg: `User with email ${user.email} already registered!` });
+            // set current group
 
             user = new User(_.omit(userEntry, ['group', 'role']));
             await user.save();

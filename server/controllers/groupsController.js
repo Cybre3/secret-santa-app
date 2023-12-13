@@ -42,32 +42,42 @@ module.exports = {
         },
 
         removePersonById: async (req, res) => {
-            const { group: groupname, _id, email } = req.body;
+            const { personToGift, groupname } = req.body;
 
             let group = await Group.findOne({ name: groupname });
             if (!group) return res.status(404).send('Group not found.')
 
-            const filtered = group.pickPool.filter(person => person.email !== email)
+            const filtered = group.pickPool.filter(person => person.email !== personToGift.email)
 
             group.pickPool = filtered;
+            group.markModified('pickPool')
             await group.save()
 
-            res.status(200).send(req.body);
+            res.status(200).send({personToGift, groupname});
         },
 
         assignPersonToUser: async (req, res) => {
-            const { group: groupname, _id } = req.params;
+            const { group: groupname, id: _id } = req.params;
             const { user, personToGift } = req.body;
 
             let group = await Group.findOne({ name: groupname });
-            if (!group) return res.status(404).send('Group not found.')
+            if (!group) return res.status(404).send('Group not found.');
+
+            let userInDb = await User.findById(_id);
+            if (!userInDb) return res.status(404).send({ msg: `User not found.` });
 
             const santaIndex = group.secretSantas.findIndex(santa => santa.email === user.email);
+            const currentGroupIndex = userInDb.groups.findIndex(group => group.name === groupname);
 
-            group.secretSantas[santaIndex].personToGift = personToGift;
-            const saved = await group.save();
+            group.secretSantas[santaIndex].personToGift = _.pick(personToGift, ['_id', 'firstname', 'email']);
+            userInDb.groups[currentGroupIndex].personToGift = personToGift;
 
-            res.status(200).send(saved);
+            group.markModified('secretSantas');
+            userInDb.markModified('groups');
+            await group.save();
+            await userInDb.save();
+
+            res.status(200).send({user, personToGift});
             // res.status(200).send({personToGift, user});
         }
     },

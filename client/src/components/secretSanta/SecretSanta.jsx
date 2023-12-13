@@ -11,8 +11,8 @@ import Joi from 'joi-browser';
 import { connect } from 'react-redux';
 
 import withRouter from '../../utilities/withRouter';
-import { addGiftToUser, getCurrentUser, loadUsers } from '../../store/users';
-import { assignPersonToUser, loadGroups, removePersonFromPickPool } from '../../store/groups';
+import { addGiftToUser, getCurrentUser, getCurrentUserByEmail, loadUsers } from '../../store/users';
+import { assignPersonToUser, getGroup, loadGroups, removePersonFromPickPool } from '../../store/groups';
 
 import Form from '../common/form/Form';
 import Lists from './ListToggle';
@@ -33,22 +33,22 @@ class SecretSanta extends Form {
     }
 
     async componentDidMount() {
-
         const { id: userId } = this.props.params;
         await this.props.loadUsers();
         await this.props.loadGroups();
         const [storeCurrentUser] = await this.props.currentUser(userId);
-        // const localStorageCurrentUser = getCurrentUser(userId);
+        const groupIndex = storeCurrentUser.groups.findIndex(group => group.name === storeCurrentUser.currentGroup);
+        const personToGift = storeCurrentUser.groups[groupIndex].personToGift;
         
-        // if (storeCurrentUser._id === localStorageCurrentUser._id)
         this.setState({ user: storeCurrentUser })
         if (storeCurrentUser.currentGroup) this.setState({ group: storeCurrentUser.currentGroup })
+        if (personToGift) this.setState({ personToGift })
     }
 
     schema = {
         name: Joi.string().allow('').label('Gift Name'),
         link: Joi.string().allow('').label('Gift Link'),
-        priority: Joi.string().allow('').label('Gift Priority'),
+        priority: Joi.number().allow('').label('Gift Priority'),
     }
 
     priorityOptions = [
@@ -62,41 +62,41 @@ class SecretSanta extends Form {
         inputClass: 'rounded-sm outline outline-1 pl-3 py-1 tx-sm w-[70%]',
         labelClass: 'text-white'
     };
-    
+
     dropdownClasses = {
         inputContainer: 'flex justify-between space-x-2 w-full',
         inputClass: 'rounded-sm outline outline-1 tx-sm w-[20%] text-center !mr-20',
         labelClass: 'text-white'
     };
-    
+
     btnClass = 'cursor-pointer rounded border border-black my-4 px-4 py-1 hover:bg-green-700 hover:text-white bg-white';
-    
+
     handleAssignPerson = async () => {
         const { user } = this.state;
-        const [{ pickPool, secretSantas }] = await this.props.getGroup(user.group)
-        
-        const pickPoolFiltered = pickPool.filter(person => person._id !== user._id);
+        const [{ pickPool, secretSantas }] = await this.props.getGroup(user.currentGroup)
+
+        const pickPoolFiltered = pickPool.filter(person => person.email !== user.email);
         const randomIndex = Math.floor(Math.random() * pickPoolFiltered.length);
         const personToGift = pickPoolFiltered[randomIndex];
         const santa = secretSantas.find(person => person.email === personToGift.email);
 
         await this.props.assignPersonToUser(user, personToGift);
-        await this.props.removePersonFromPickPool(personToGift);
+        await this.props.removePersonFromPickPool(personToGift, user.currentGroup);
         this.setState({ personToGift: santa });
     }
 
     handleChooseGroup = () => {
         this.setState({ chooseBtnVisible: this.state.chooseBtnVisible ? false : true });
     }
-    
+
     doSubmit = async () => {
         this.props.addGift(this.props.params.id, this.state.data, await this.state.group);
         this.setState({ data: { name: '', link: '', priority: 0 } });
     }
-    
+
     render() {
         const { user, personToGift, chooseBtnVisible } = this.state;
-        
+
         return (
             <div className='w-screen h-screen overflow-hidden bg-green-800 flex items-center'>
 
@@ -106,12 +106,12 @@ class SecretSanta extends Form {
                         <h3>Secret Santa: {user ? user.firstname : ''}</h3>
                         {
                             chooseBtnVisible ?
-                                <ChooseGroup /> : 
+                                <ChooseGroup /> :
                                 <button className='bg-neutral-300 p-2 py-1 border border-black rounded-md' onClick={this.handleChooseGroup}>Choose Group</button>
                         }
                         <div className='flex space-x-4'>
                             {
-                                !personToGift._id &&
+                                !personToGift.email &&
                                 <button
                                     onClick={this.handleAssignPerson}
                                     className='bg-white border-2 border-green-600 rounded-md px-2 py-1 hover:bg-green-600 hover:text-white hover:border-black'
@@ -153,14 +153,16 @@ const mapStateToProps = state => ({
     users: state.entities.users.list,
     groups: state.entities.groups.list,
     currentGroup: state.entities.users.currentGroup,
-    currentUser: userId => getCurrentUser(userId)(state)
+    currentUser: userId => getCurrentUser(userId)(state),
+    getGroup: groupname => getGroup(groupname)(state),
+    getUser: email => getCurrentUserByEmail(email)(state)
 })
 
 const mapDispatchToProps = dispatch => ({
     loadUsers: () => dispatch(loadUsers()),
     loadGroups: () => dispatch(loadGroups()),
     addGift: (userId, gift, groupname) => dispatch(addGiftToUser(userId, gift, groupname)),
-    removePersonFromPickPool: person => dispatch(removePersonFromPickPool(person)),
+    removePersonFromPickPool: (person, groupname) => dispatch(removePersonFromPickPool(person, groupname)),
     assignPersonToUser: (user, person) => dispatch(assignPersonToUser(user, person)),
 })
 

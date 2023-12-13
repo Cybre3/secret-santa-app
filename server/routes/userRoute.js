@@ -8,7 +8,8 @@ router.get('/', usersController.get.allUsers);
 
 router.post('/', validator(validateUser), usersController.post.addNewUser);
 
-router.patch('/secret-santa', giftsController.patch.addNewGift);
 router.patch('/', usersController.patch.setCurrentGroup);
+router.patch('/secret-santa', giftsController.patch.addNewGift);
+
 
 module.exports = router;

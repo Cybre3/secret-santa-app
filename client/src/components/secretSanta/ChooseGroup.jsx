@@ -36,7 +36,7 @@ class ChooseGroup extends Form {
 
     doSubmit = () => {
         this.props.setCurrentGroup(this.state.data.group, this.props.params.id)
-        // window.location = `/secret-santa/${this.props.params.id}`;
+        window.location = `/secret-santa/${this.props.params.id}`;
     }
 
     render() {

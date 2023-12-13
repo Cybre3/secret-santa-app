@@ -37,18 +37,18 @@ const slice = createSlice({
         },
 
         personRemovedFromPickPool: (groups, action) => {
-            const { group: groupname, _id } = action.payload;
+            const { groupname, personToGift } = action.payload;
             const groupIndex = groups.list.findIndex(group => group.name === groupname);
             const group = groups.list[groupIndex];
 
-            group.pickPool.filter(person => person._id !== _id)
+            group.pickPool.filter(person => person.email !== personToGift.email)
         },
 
         personAssignedToUser: (groups, action) => {
             const { personToGift, user } = action.payload;
-            const groupIndex = groups.list.findIndex(group => group.name === personToGift.group);
+            const groupIndex = groups.list.findIndex(group => group.name === user.currentGroup);
             const group = groups.list[groupIndex];
-            const santaIndex = group.secretSantas.findIndex(santa => santa._id === user._id);
+            const santaIndex = group.secretSantas.findIndex(santa => santa.email === user.email);
 
             group.secretSantas[santaIndex].personToGift = personToGift;
         }
@@ -85,17 +85,17 @@ export const addUserToGroup = (user) =>
         onSuccess: userAddedToGroup.type
     })
 
-export const removePersonFromPickPool = personToGift =>
+export const removePersonFromPickPool = (personToGift, groupname) =>
     apiCallBegan({
         url,
         method: 'patch',
-        data: personToGift,
+        data: {personToGift, groupname},
         onSuccess: personRemovedFromPickPool.type
     })
 
 export const assignPersonToUser = (user, personToGift) =>
     apiCallBegan({
-        url: `${url}/${user.group}/${user._id}`,
+        url: `${url}/${user.currentGroup}/${user._id}`,
         method: 'patch',
         data: { user, personToGift },
         onSuccess: personAssignedToUser.type
@@ -109,6 +109,10 @@ export const getPersonData = person => createSelector(
     })
 )
 
+export const getGroup = groupname => createSelector(
+    state => state.entities.groups,
+    groups => groups.list.filter(group => group.name === groupname)
+)
 
 
 // groups

@@ -1,8 +1,9 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Tab } from '@headlessui/react';
 import { useSelector } from 'react-redux';
-import { getCurrentUser } from '../../store/users';
 import { NavLink } from 'react-router-dom';
+
+import { getCurrentUser } from '../../store/users';
 
 function Lists(props) {
     const [giftList, setGiftList] = useState([]);
@@ -20,6 +21,14 @@ function Lists(props) {
         }
         getGroups();
     }, [user, giftList])
+
+    /* 
+     if(personToGift) {
+            const person = getUser(personToGift.email);
+            const groupIndex = person.groups.findIndex(group => group.name === this.state.user.currentGroup);
+            const personGiftList = person.groups[groupIndex].giftList;
+        }
+    */
 
     const categories = useMemo(() =>
     ({

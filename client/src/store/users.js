@@ -80,7 +80,6 @@ export const loginUser = user =>
         onSuccess: userLogggedIn.type
     })
 
-
 export const registerUser = user =>
     apiCallBegan({
         url,
@@ -88,7 +87,6 @@ export const registerUser = user =>
         data: _.omit(user, 'repassword'),
         onSuccess: userRegistered.type
     });
-
 
 export const loadUsers = () => (dispatch, getState) => {
     // const { lastFetch } = getState().entities.cars;
